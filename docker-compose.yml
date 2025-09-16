@@ -1,11 +1,24 @@
 version: '3.8'
 
+name: 'detection-radiodiagnosis'
 services:
-  flask_detection:
+  flask-detection:
     build: .
     ports:
       - '5010:5010'
     volumes:
       - .:/app
-    # environment:
-    # - FLASK_ENV=development
+    environment:
+      - FLASK_ENV=development
+  ngrok-detection:
+    image: ngrok/ngrok:latest
+    env_file:
+      - .env
+    depends_on:
+      - flask-detection
+    command: http --log=stdout http://flask-detection:5010
+    environment:
+      NGROK_AUTHTOKEN: '${NGROK_AUTHTOKEN}'
+    ports:
+      - '4040:4040'
+    restart: unless-stopped

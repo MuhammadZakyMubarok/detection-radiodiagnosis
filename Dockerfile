@@ -12,4 +12,4 @@ EXPOSE 5010
 
 ENV FLASK_APP=app.py
 
-CMD ["python", "app.py"]
+CMD ["python", "backend/app.py"]
