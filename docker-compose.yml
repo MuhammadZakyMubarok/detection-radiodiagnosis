@@ -3,6 +3,7 @@ version: '3.8'
 name: 'detection-radiodiagnosis'
 services:
   flask-detection:
+    container_name: flask-detection
     build: .
     ports:
       - '5010:5010'
@@ -11,6 +12,7 @@ services:
     environment:
       - FLASK_ENV=development
   ngrok-detection:
+    container_name: ngrok-detection
     image: ngrok/ngrok:latest
     env_file:
       - .env
