@@ -8,6 +8,9 @@ RUN pip install --no-cache-dir -r new-requirement-linux.txt
 
 COPY . .
 
+COPY .env-example .env
+COPY backend/.env-example backend/.env
+
 EXPOSE 5010
 
 ENV FLASK_APP=app.py
