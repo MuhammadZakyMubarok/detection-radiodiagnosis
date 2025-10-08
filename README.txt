@@ -9,8 +9,14 @@ Untuk menjalankanya harus dari folder "backend"
 ====== Mulai dari root project lagi (cd ../)
 6. download ngrok dan extract di root project
 7. Jalankan
+Klao ngrok
 ```bash
-ngrok.exe http http://localhost:5010
+ngrok.exe http 5010 --host-header="radiodiagnosis.id"
+
+```
+kalo piggy
+```bash
+pinggy.exe -p 443 -R0:127.0.0.1:5010 -L4300:127.0.0.1:4300 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -t T2nRyM3PPvs@ap.pro.pinggy.io \"w:35.209.64.113/32\"
 ```
 
 # Cara kedua pakai docker (preferred)

@@ -161,6 +161,11 @@ app.config['CROP_FOLDER'] = 'detect/exp/crops'
 app.config['CROP_FOLDER_SQUARE'] = 'detect/exp/crops-square'
 
 
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({"status": "ok", "message": "Flask server is running!"}), 200
+
 @app.route('/gambar/<path:filename>')
 def get_gambar(filename):
     # Mengirim file gambar dari direktori upload

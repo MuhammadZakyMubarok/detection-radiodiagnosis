@@ -1,6 +1,7 @@
 # Virtual Environment
 venv/
 myenv/
+detect/
 
 
 # Compiled Python files
