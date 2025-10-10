@@ -20,7 +20,11 @@ pinggy.exe -p 443 -R0:127.0.0.1:5010 -L4300:127.0.0.1:4300 -o StrictHostKeyCheck
 ```
 
 # Cara kedua pakai docker (preferred)
-    
+
+```bash
+docker network create  detection-radiodiagnosis-network
+```
+
 ```bash
 docker compose -f docker-compose.yml up --build -d
 ```
