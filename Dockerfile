@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -9,7 +9,8 @@ RUN pip install --no-cache-dir -r new-requirement-linux.txt
 COPY . .
 
 COPY .env-example .env
-COPY backend/.env-example backend/.env
+# Kalo mau local ganti aja .env.production ke .env.example
+COPY backend/.env.production backend/.env
 
 EXPOSE 5010
 

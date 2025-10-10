@@ -1,26 +1,38 @@
-version: '3.8'
+name: "detection-radiodiagnosis"
 
-name: 'detection-radiodiagnosis'
+networks:
+  detection-radiodiagnosis-network:
+    external: true
+
 services:
   flask-detection:
     container_name: flask-detection
     build: .
     ports:
-      - '5010:5010'
+      - "5010:5010"
     volumes:
       - .:/app
     environment:
       - FLASK_ENV=development
-  ngrok-detection:
-    container_name: ngrok-detection
-    image: ngrok/ngrok:latest
-    env_file:
-      - .env
+    networks:
+      - detection-radiodiagnosis-network
+
+  pinggy-detection:
+    container_name: pinggy-detection
+    build:
+      context: ./pinggy-client
+      dockerfile: Dockerfile
+    environment:
+      - PINGGY_TOKEN=T2nRyM3PPvs
     depends_on:
       - flask-detection
-    command: http --log=stdout http://flask-detection:5010
-    environment:
-      NGROK_AUTHTOKEN: '${NGROK_AUTHTOKEN}'
-    ports:
-      - '4040:4040'
+    command:
+      - /bin/sh
+      - -lc
+      - >-
+        exec /usr/local/bin/pinggy -p 443 -R0:flask-detection:5010
+        -o StrictHostKeyChecking=no -o ServerAliveInterval=30
+        -t $${PINGGY_TOKEN}@ap.pro.pinggy.io "w:35.209.64.113/32"
     restart: unless-stopped
+    networks:
+      - detection-radiodiagnosis-network
