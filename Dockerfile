@@ -8,7 +8,6 @@ RUN pip install --no-cache-dir -r new-requirement-linux.txt
 
 COPY . .
 
-COPY .env-example .env
 # Kalo mau local ganti aja .env.production ke .env.example
 COPY backend/.env.production backend/.env
 
