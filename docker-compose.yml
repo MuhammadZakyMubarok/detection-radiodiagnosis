@@ -19,20 +19,19 @@ services:
 
   pinggy-detection:
     container_name: pinggy-detection
-    build:
-      context: ./pinggy-client
-      dockerfile: Dockerfile
+    image: pinggy/pinggy:latest
+    network_mode: "host"
+    restart: unless-stopped
     environment:
       - PINGGY_TOKEN=T2nRyM3PPvs
+    command:
+      - -p
+      - "443"
+      - -R0:127.0.0.1:5010
+      - -o
+      - StrictHostKeyChecking=no
+      - -o
+      - ServerAliveInterval=30
+      - "T2nRyM3PPvs@ap.pro.pinggy.io"
     depends_on:
       - flask-detection
-    command:
-      - /bin/sh
-      - -lc
-      - >-
-        exec /usr/local/bin/pinggy -p 443 -R0:flask-detection:5010
-        -o StrictHostKeyChecking=no -o ServerAliveInterval=30
-        -t $${PINGGY_TOKEN}@ap.pro.pinggy.io "w:35.209.64.113/32"
-    restart: unless-stopped
-    networks:
-      - detection-radiodiagnosis-network

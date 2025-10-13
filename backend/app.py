@@ -12,6 +12,9 @@ from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 import os
+import sys
+import subprocess
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app, origins='*')
@@ -33,6 +36,43 @@ PORT = os.getenv("PORT")
 # BASE_URL = 'http://localhost:5006'
 URL_CROP = BASE_URL+"/gambar/crops/"
 URL_CROP_SQUARE = BASE_URL+"/gambar/crops-square/"
+
+HERE = Path(__file__).resolve().parent
+
+def run_yolo_on_image(file_path):
+    detect_script = (HERE.parent / 'yolo' / 'yolov5' / 'detect.py').resolve()
+    if not detect_script.exists():
+        raise FileNotFoundError(f"detect.py not found: {detect_script}")
+
+    weights_path = (HERE.parent / 'yolo' / 'model-test' / MODEL_YOLO).resolve()
+    if not weights_path.exists():
+        raise FileNotFoundError(f"weights not found: {weights_path}")
+
+    cmd = [
+        sys.executable,
+        str(detect_script),
+        '--weights', str(weights_path),
+        '--img', '608',
+        '--conf-thres', str(CONF_THRES),
+        '--source', str(file_path),
+        '--line-thickness', '1',
+        '--save-crop',
+        '--exist-ok',
+        '--save-txt',
+        '--save-csv',
+        '--project', 'detect',
+        '--save-conf'
+    ]
+
+    # debugging
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    # log outputs
+    print("YOLO stdout:\n", proc.stdout)
+    print("YOLO stderr:\n", proc.stderr)
+    if proc.returncode != 0:
+        raise RuntimeError(f"YOLO detect failed (rc={proc.returncode}). See stderr above.")
+
+    return proc.returncode
 
 def read_data():
     if not os.path.exists(JSON_FILE):
@@ -249,19 +289,19 @@ def create_data():
     if os.path.exists(exp_folder):
         shutil.rmtree(exp_folder)
 
-    
-    process = Popen(['python', '../yolo/yolov5/detect.py',
-                     '--weights', f'../yolo/model-test/{MODEL_YOLO}',
-                    '--img', '608',
-                     '--conf-thres', f'{CONF_THRES}',
-                     '--source', file_path,
-                     '--line-thickness', '1',
-                     '--save-crop',
-                     '--exist-ok',
-                     '--save-txt',
-                     '--save-csv',
-                     '--project', 'detect',
-                     '--save-conf'], shell=True)
+    process = run_yolo_on_image(file_path)
+    # process = Popen(['python', '../yolo/yolov5/detect.py',
+    #                  '--weights', f'../yolo/model-test/{MODEL_YOLO}',
+    #                 '--img', '608',
+    #                  '--conf-thres', f'{CONF_THRES}',
+    #                  '--source', file_path,
+    #                  '--line-thickness', '1',
+    #                  '--save-crop',
+    #                  '--exist-ok',
+    #                  '--save-txt',
+    #                  '--save-csv',
+    #                  '--project', 'detect',
+    #                  '--save-conf'], shell=True)
     process.wait()
     
     
@@ -364,7 +404,15 @@ def delete_data(id):
 
 
 if __name__ == '__main__':
-    # Membuat folder 'detect/test' jika belum ada
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    # app.run(debug=True, port=5001)
-    app.run(debug=True, port=PORT)
+
+    port_env = os.getenv('PORT', '5010')
+    try:
+        port = int(port_env)
+    except (TypeError, ValueError):
+        port = 5010
+
+    debug_mode = os.getenv('FLASK_ENV', '').lower() == 'development'
+
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+
