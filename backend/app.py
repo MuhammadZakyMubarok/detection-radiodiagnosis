@@ -289,7 +289,7 @@ def create_data():
     if os.path.exists(exp_folder):
         shutil.rmtree(exp_folder)
 
-    process = run_yolo_on_image(file_path)
+    run_yolo_on_image(file_path)
     # process = Popen(['python', '../yolo/yolov5/detect.py',
     #                  '--weights', f'../yolo/model-test/{MODEL_YOLO}',
     #                 '--img', '608',
@@ -302,7 +302,7 @@ def create_data():
     #                  '--save-csv',
     #                  '--project', 'detect',
     #                  '--save-conf'], shell=True)
-    process.wait()
+    # process.wait()
     
     
     print(new_data)
