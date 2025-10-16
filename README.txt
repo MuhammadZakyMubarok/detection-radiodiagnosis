@@ -19,6 +19,11 @@ kalo piggy
 .\pinggy.exe -p 443 -R0:127.0.0.1:5010 -L4300:127.0.0.1:4300 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -t T2nRyM3PPvs@ap.pro.pinggy.io \"w:35.209.64.113/32\"
 ```
 
+Kalo mau develop local (biar engga diblacklist)
+```bash
+.\pinggy.exe -p 443 -R0:127.0.0.1:5010 -L4300:127.0.0.1:4300 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -t T2nRyM3PPvs@ap.pro.pinggy.io
+```
+
 # Cara kedua pakai docker (preferred)
 
 ```bash
