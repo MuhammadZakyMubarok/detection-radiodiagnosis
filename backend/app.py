@@ -74,76 +74,189 @@ def run_yolo_on_image(file_path):
 
     return proc.returncode
 
+# def read_data():
+#     if not os.path.exists(JSON_FILE):
+#         return []
+
+#     dataPredict = []
+#     missing_teeth = []
+#     duplicate_predictions = []
+#     show_odontogram = []
+#     result_merge_accuracy =[]
+#     missing_teeth =[]
+#     duplicate_predictions=[]
+#     dataPredict=[]
+#     if  os.path.exists(PREDICT_FILE):
+#         with open(PREDICT_FILE, 'r') as file:
+#             csv_reader = csv.reader(file)
+#             # next(csv_reader)  # Skip header row
+#             for row in csv_reader:
+#                 number = int(row[1])  # Get number from the second column
+#                 accuracy = float(row[2])  # Get accuracy from the third column
+
+#                 dataPredict.append({'number': number, 'accuracy': accuracy})
+        
+#         # Sort the dataPredict array by 'number' in ascending order
+#         dataPredict = sorted(dataPredict, key=lambda x: x['number'])
+        
+#         # Identify missing teeth
+#         missing_teeth = [tooth for tooth in ODONTOGRAM_NUMBER if tooth not in {entry['number'] for entry in dataPredict}]
+
+#         # Identify duplicate numbers
+#         number_counts = defaultdict(int)
+#         for entry in dataPredict:
+#             number_counts[entry['number']] += 1
+
+#         # Select entries with duplicate numbers
+#         duplicate_predictions = [entry for entry in dataPredict if number_counts[entry['number']] > 1]
+        
+
+#         # # Create the show_odontogram list
+#         result_dict = {}
+
+#         for item in dataPredict:
+#             number = item['number']
+#             accuracy = item['accuracy']
+            
+
+#             if number in result_dict:
+#                 result_dict[number]['accuracy'].append(accuracy)
+#                 result_dict[number]['isDuplicate'] = True
+#                 result_dict[number]['duplicateCount'] += 1
+#                 img1 = URL_CROP + str(number) + '/img.jpg'
+#                 img2 = URL_CROP + str(number) + '/img2.jpg'
+#                 img3 = URL_CROP + str(number) + '/img3.jpg'
+#                 imgSquare1 = URL_CROP_SQUARE + str(number) + '/img.jpg'
+#                 imgSquare2 = URL_CROP_SQUARE + str(number) + '/img2.jpg'
+#                 imgSquare3 = URL_CROP_SQUARE + str(number) + '/img3.jpg'
+#                 result_dict[number]['urlImage'] =[img1, img2]
+#                 result_dict[number]['urlImageSquare'] =[imgSquare1, imgSquare2]
+#                 if result_dict[number]['duplicateCount'] == 2:
+#                     result_dict[number]['urlImage'] =[img1, img2, img3]
+#                     result_dict[number]['urlImageSquare'] =[imgSquare1, imgSquare2,imgSquare3]
+                
+#             else:
+#                 result_dict[number] = {
+#                     'number': number, 
+#                     'accuracy': [accuracy],
+#                     'isDuplicate': False,
+#                     'duplicateCount': 0,
+#                     'urlImage': URL_CROP + str(number) + '/img.jpg',
+#                     'urlImageSquare': URL_CROP_SQUARE + str(number) + '/img.jpg',
+#                     }
+
+#         result_merge_accuracy = [
+#             {'number': entry['number'], 
+#              'accuracy': entry['accuracy'][0] if len(entry['accuracy']) == 1 else entry['accuracy'],
+#              'urlImage': entry['urlImage'] if not entry['isDuplicate'] else entry['urlImage'],
+#              'urlImageSquare': entry['urlImageSquare'] if not entry['isDuplicate'] else entry['urlImageSquare'],
+#              'isDuplicate': entry['isDuplicate'],
+#              'duplicateCount': entry['duplicateCount'],
+#              'isMissing': False
+#              }
+#             for entry in result_dict.values()
+#         ]
+        
+#         for number in ODONTOGRAM_NUMBER:
+#             number_exists = any(entry['number'] == number for entry in result_merge_accuracy)
+            
+#             if not number_exists:
+#                 missing_entry = {
+#                     "accuracy": None,
+#                     "duplicateCount": 0,
+#                     "isDuplicate": False,
+#                     "isMissing": True,
+#                     "number": number,
+#                     "urlImage": "",
+#                     "urlImageSquare": ""
+#                 }
+#                 result_merge_accuracy.append(missing_entry)
+
+#         # Sort the result based on the "number" field
+#         result_merge_accuracy.sort(key=lambda x: x['number'])
+    
+#     with open(JSON_FILE, 'r') as file:
+#         data = json.load(file)
+
+#         data['predictions'] ={ 
+#                               'show_odontogram': result_merge_accuracy or '',
+#                               'missing_teeth': missing_teeth or '', 
+#                               'double_predict': duplicate_predictions or '',
+#                               'all': dataPredict or ''}
+#         return data
+
 def read_data():
     if not os.path.exists(JSON_FILE):
         return []
+
+    # Buka JSON di awal untuk mendapatkan nama file asli
+    with open(JSON_FILE, 'r') as file:
+        data = json.load(file)
+        
+    filename = "img.jpg"
+    if 'file_gambar' in data:
+        filename = os.path.basename(data['file_gambar'])
+        
+    # Buang ekstensi .jpg untuk keperluan penamaan crop (misal: "pasien1.jpg" jadi "pasien1")
+    stem = filename.replace('.jpg', '')
+    ext = '.jpg'
 
     dataPredict = []
     missing_teeth = []
     duplicate_predictions = []
     show_odontogram = []
-    result_merge_accuracy =[]
-    missing_teeth =[]
-    duplicate_predictions=[]
-    dataPredict=[]
-    if  os.path.exists(PREDICT_FILE):
+    result_merge_accuracy = []
+
+    if os.path.exists(PREDICT_FILE):
         with open(PREDICT_FILE, 'r') as file:
             csv_reader = csv.reader(file)
-            # next(csv_reader)  # Skip header row
             for row in csv_reader:
-                number = int(row[1])  # Get number from the second column
-                accuracy = float(row[2])  # Get accuracy from the third column
-
+                number = int(row[1])
+                accuracy = float(row[2])
                 dataPredict.append({'number': number, 'accuracy': accuracy})
         
-        # Sort the dataPredict array by 'number' in ascending order
         dataPredict = sorted(dataPredict, key=lambda x: x['number'])
-        
-        # Identify missing teeth
         missing_teeth = [tooth for tooth in ODONTOGRAM_NUMBER if tooth not in {entry['number'] for entry in dataPredict}]
 
-        # Identify duplicate numbers
         number_counts = defaultdict(int)
         for entry in dataPredict:
             number_counts[entry['number']] += 1
 
-        # Select entries with duplicate numbers
         duplicate_predictions = [entry for entry in dataPredict if number_counts[entry['number']] > 1]
         
-
-        # # Create the show_odontogram list
         result_dict = {}
 
         for item in dataPredict:
             number = item['number']
             accuracy = item['accuracy']
             
+            # Susun URL secara dinamis menggunakan nama asli file
+            img1 = f"{URL_CROP}{number}/{stem}{ext}"
+            img2 = f"{URL_CROP}{number}/{stem}2{ext}"
+            img3 = f"{URL_CROP}{number}/{stem}3{ext}"
+            
+            imgSquare1 = f"{URL_CROP_SQUARE}{number}/{stem}{ext}"
+            imgSquare2 = f"{URL_CROP_SQUARE}{number}/{stem}2{ext}"
+            imgSquare3 = f"{URL_CROP_SQUARE}{number}/{stem}3{ext}"
 
             if number in result_dict:
                 result_dict[number]['accuracy'].append(accuracy)
                 result_dict[number]['isDuplicate'] = True
                 result_dict[number]['duplicateCount'] += 1
-                img1 = URL_CROP + str(number) + '/img.jpg'
-                img2 = URL_CROP + str(number) + '/img2.jpg'
-                img3 = URL_CROP + str(number) + '/img3.jpg'
-                imgSquare1 = URL_CROP_SQUARE + str(number) + '/img.jpg'
-                imgSquare2 = URL_CROP_SQUARE + str(number) + '/img2.jpg'
-                imgSquare3 = URL_CROP_SQUARE + str(number) + '/img3.jpg'
-                result_dict[number]['urlImage'] =[img1, img2]
-                result_dict[number]['urlImageSquare'] =[imgSquare1, imgSquare2]
+                result_dict[number]['urlImage'] = [img1, img2]
+                result_dict[number]['urlImageSquare'] = [imgSquare1, imgSquare2]
                 if result_dict[number]['duplicateCount'] == 2:
-                    result_dict[number]['urlImage'] =[img1, img2, img3]
-                    result_dict[number]['urlImageSquare'] =[imgSquare1, imgSquare2,imgSquare3]
-                
+                    result_dict[number]['urlImage'] = [img1, img2, img3]
+                    result_dict[number]['urlImageSquare'] = [imgSquare1, imgSquare2, imgSquare3]
             else:
                 result_dict[number] = {
                     'number': number, 
                     'accuracy': [accuracy],
                     'isDuplicate': False,
                     'duplicateCount': 0,
-                    'urlImage': URL_CROP + str(number) + '/img.jpg',
-                    'urlImageSquare': URL_CROP_SQUARE + str(number) + '/img.jpg',
-                    }
+                    'urlImage': img1,
+                    'urlImageSquare': imgSquare1,
+                }
 
         result_merge_accuracy = [
             {'number': entry['number'], 
@@ -159,7 +272,6 @@ def read_data():
         
         for number in ODONTOGRAM_NUMBER:
             number_exists = any(entry['number'] == number for entry in result_merge_accuracy)
-            
             if not number_exists:
                 missing_entry = {
                     "accuracy": None,
@@ -172,18 +284,15 @@ def read_data():
                 }
                 result_merge_accuracy.append(missing_entry)
 
-        # Sort the result based on the "number" field
         result_merge_accuracy.sort(key=lambda x: x['number'])
     
-    with open(JSON_FILE, 'r') as file:
-        data = json.load(file)
-
-        data['predictions'] ={ 
-                              'show_odontogram': result_merge_accuracy or '',
-                              'missing_teeth': missing_teeth or '', 
-                              'double_predict': duplicate_predictions or '',
-                              'all': dataPredict or ''}
-        return data
+    data['predictions'] = { 
+        'show_odontogram': result_merge_accuracy or '',
+        'missing_teeth': missing_teeth or '', 
+        'double_predict': duplicate_predictions or '',
+        'all': dataPredict or ''
+    }
+    return data
 
 # Fungsi untuk menulis data ke file JSON
 
@@ -222,110 +331,162 @@ def get_gambar_crop_square(dir):
     return send_from_directory(app.config['CROP_FOLDER_SQUARE'], dir)
 
 
+# @app.route('/data', methods=['POST'])
+# def create_data():
+
+#     print('-------------')
+#     print(request.is_json)
+#     for field_name, field_value in request.form.items():
+#         print(f'{field_name}: {field_value}')
+
+#     print('-------------')
+#     # files = request.files.getlist('file_gambar')
+#     # for file in files:
+#     #     # Access file properties
+#     #     filename = file.filename
+#     #     content_type = file.content_type
+#     #     file_size = len(file.read())
+
+#     #     print(f'File Name: {filename}')
+#     #     print(f'Content Type: {content_type}')
+#     #     print(f'File Size: {file_size} bytes')
+#     # # print(request.get_json())
+#     # # print(request.files['file_gambar'])
+#     # # print(request.form.get('file_gambar'))
+#     # print('-------------')
+
+#     # return jsonify({"req": 's'}), 201
+
+#     data = read_data()
+#     # Menerima input dari request body
+#     # id = request.form.get('id')
+#     nama = request.form.get('nama')
+#     rekam_medik = request.form.get('rekam_medik')
+#     file_gambar = request.files['file_gambar']
+
+#     # Menyimpan file gambar dengan penomoran bertambah
+#     # file_name = str(len(data) + 1) + '.' + file_gambar.filename.split('.')[-1]
+#     file_name = 'img.' + file_gambar.filename.split('.')[-1]
+#     # id = str(len(data) + 1)
+#     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+#     # file_gambar.save(file_path)
+
+#     # Buka gambar menggunakan Pillow
+#     image = Image.open(file_gambar)
+
+#     # Resize gambar menjadi lebar 640
+#     new_width = 1200
+#     width, height = image.size
+#     new_height = int(new_width * height / width)
+#     resized_image = image.resize((new_width, new_height))
+
+#     # Simpan gambar yang telah diresize
+#     resized_image.save(file_path)
+
+#     # Menyimpan data baru ke dalam list
+#     new_data = {
+#         # 'id': id,
+#         'nama': nama,
+#         'rekam_medik': rekam_medik,
+#         'file_gambar': file_path
+#     }
+
+#     # Specify the path to the "detect/exp" folder
+#     exp_folder = os.path.join('detect', 'exp')
+
+#     # Delete the contents of the "detect/exp" folder if it exists
+#     if os.path.exists(exp_folder):
+#         shutil.rmtree(exp_folder)
+
+#     run_yolo_on_image(file_path)
+#     # process = Popen(['python', '../yolo/yolov5/detect.py',
+#     #                  '--weights', f'../yolo/model-test/{MODEL_YOLO}',
+#     #                 '--img', '608',
+#     #                  '--conf-thres', f'{CONF_THRES}',
+#     #                  '--source', file_path,
+#     #                  '--line-thickness', '1',
+#     #                  '--save-crop',
+#     #                  '--exist-ok',
+#     #                  '--save-txt',
+#     #                  '--save-csv',
+#     #                  '--project', 'detect',
+#     #                  '--save-conf'], shell=True)
+#     # process.wait()
+    
+    
+#     print(new_data)
+#     # data.append(new_data)
+
+#     # Menulis data ke file JSON
+#     # write_data(data)
+#     write_data(new_data)
+
+#     return jsonify(new_data), 201
+
 @app.route('/data', methods=['POST'])
 def create_data():
-
-    print('-------------')
-    print(request.is_json)
-    for field_name, field_value in request.form.items():
-        print(f'{field_name}: {field_value}')
-
-    print('-------------')
-    # files = request.files.getlist('file_gambar')
-    # for file in files:
-    #     # Access file properties
-    #     filename = file.filename
-    #     content_type = file.content_type
-    #     file_size = len(file.read())
-
-    #     print(f'File Name: {filename}')
-    #     print(f'Content Type: {content_type}')
-    #     print(f'File Size: {file_size} bytes')
-    # # print(request.get_json())
-    # # print(request.files['file_gambar'])
-    # # print(request.form.get('file_gambar'))
-    # print('-------------')
-
-    # return jsonify({"req": 's'}), 201
-
-    data = read_data()
-    # Menerima input dari request body
-    # id = request.form.get('id')
+    # Baca data lawas untuk mengosongkan statenya (jika diperlukan oleh kodemu)
+    _ = read_data()
+    
     nama = request.form.get('nama')
     rekam_medik = request.form.get('rekam_medik')
     file_gambar = request.files['file_gambar']
 
-    # Menyimpan file gambar dengan penomoran bertambah
-    # file_name = str(len(data) + 1) + '.' + file_gambar.filename.split('.')[-1]
-    file_name = 'img.' + file_gambar.filename.split('.')[-1]
-    # id = str(len(data) + 1)
+    # TETAPKAN NAMA FILE ASLI
+    file_name = file_gambar.filename
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
-    # file_gambar.save(file_path)
 
-    # Buka gambar menggunakan Pillow
+    # Buka & Resize gambar
     image = Image.open(file_gambar)
-
-    # Resize gambar menjadi lebar 640
     new_width = 1200
     width, height = image.size
     new_height = int(new_width * height / width)
     resized_image = image.resize((new_width, new_height))
-
-    # Simpan gambar yang telah diresize
     resized_image.save(file_path)
 
-    # Menyimpan data baru ke dalam list
     new_data = {
-        # 'id': id,
         'nama': nama,
         'rekam_medik': rekam_medik,
         'file_gambar': file_path
     }
 
-    # Specify the path to the "detect/exp" folder
+    # Hapus folder exp lama dengan ignore_errors untuk bypass masalah akses di Windows
     exp_folder = os.path.join('detect', 'exp')
-
-    # Delete the contents of the "detect/exp" folder if it exists
     if os.path.exists(exp_folder):
-        shutil.rmtree(exp_folder)
+        shutil.rmtree(exp_folder, ignore_errors=True)
 
+    # Jalankan YOLO (YOLO akan crop dengan format nama asli file)
     run_yolo_on_image(file_path)
-    # process = Popen(['python', '../yolo/yolov5/detect.py',
-    #                  '--weights', f'../yolo/model-test/{MODEL_YOLO}',
-    #                 '--img', '608',
-    #                  '--conf-thres', f'{CONF_THRES}',
-    #                  '--source', file_path,
-    #                  '--line-thickness', '1',
-    #                  '--save-crop',
-    #                  '--exist-ok',
-    #                  '--save-txt',
-    #                  '--save-csv',
-    #                  '--project', 'detect',
-    #                  '--save-conf'], shell=True)
-    # process.wait()
     
-    
-    print(new_data)
-    # data.append(new_data)
-
-    # Menulis data ke file JSON
-    # write_data(data)
     write_data(new_data)
-
     return jsonify(new_data), 201
 
 # Mendefinisikan endpoint untuk mendapatkan semua data
 
 
-@ app.route('/data', methods=['GET'])
-def get_all_data():
-    # Define the path to the image file
+# @ app.route('/data', methods=['GET'])
+# def get_all_data():
+#     # Define the path to the image file
 
+#     data = read_data()
+#     if not data:
+#         return jsonify({}), 200
+
+#     data['gambar'] = BASE_URL+"/gambar/img.jpg"
+#     return jsonify(data), 200
+
+@app.route('/data', methods=['GET'])
+def get_all_data():
     data = read_data()
     if not data:
         return jsonify({}), 200
 
-    data['gambar'] = BASE_URL+"/gambar/img.jpg"
+    # Ambil nama file dinamis dari JSON yang telah tersimpan
+    filename = "img.jpg"
+    if 'file_gambar' in data:
+        filename = os.path.basename(data['file_gambar'])
+
+    data['gambar'] = f"{BASE_URL}/gambar/{filename}"
     return jsonify(data), 200
 
 # Mendefinisikan endpoint untuk mendapatkan data berdasarkan ID
